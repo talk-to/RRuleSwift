@@ -9,7 +9,8 @@
 import Foundation
 import EventKit
 
-public struct RRule {
+@objc
+public class RRule: NSObject {
     public static let dateFormatter: DateFormatter = {
         let dateFormatter = DateFormatter()
         dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
@@ -43,7 +44,7 @@ public struct RRule {
             return rule
         }
 
-        var recurrenceRule = RecurrenceRule(frequency: .daily)
+        let recurrenceRule = RecurrenceRule(frequency: .daily)
         var ruleFrequency: RecurrenceFrequency?
         for rule in rules {
             let ruleComponents = rule.components(separatedBy: "=")

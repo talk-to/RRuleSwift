@@ -9,7 +9,8 @@
 import Foundation
 import EventKit
 
-public struct RecurrenceRule {
+@objc
+public class RecurrenceRule: NSObject {
     /// The calendar of recurrence rule.
     public var calendar = Calendar.current
 
@@ -79,14 +80,6 @@ public struct RecurrenceRule {
 
     public init(frequency: RecurrenceFrequency) {
         self.frequency = frequency
-    }
-
-    public init?(rruleString: String) {
-        if let recurrenceRule = RRule.ruleFromString(rruleString) {
-            self = recurrenceRule
-        } else {
-            return nil
-        }
     }
 
     public func toRRuleString() -> String {
