@@ -22,7 +22,8 @@ Pod::Spec.new do |s|
 
   s.frameworks   = "Foundation", "EventKit"  
   s.ios.frameworks   = "Foundation", "EventKit", "JavaScriptCore"
-  s.source_files = 'Sources/*.swift', 'Sources/lib/*.js'
+  s.source_files = 'Sources/*.swift'
+  s.resources = 'Sources/lib/*.js'
   s.watchos.exclude_files = 'Sources/Iterators.swift', 'JavaScriptBridge.swift'
 
 end

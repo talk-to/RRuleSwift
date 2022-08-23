@@ -9,9 +9,9 @@
 import Foundation
 import EventKit
 
-internal struct JavaScriptBridge {
+final internal class JavaScriptBridge {
     internal static func rrulejs() -> String? {
-        let libPath = Bundle(identifier: "Teambition.RRuleSwift-iOS")?.path(forResource: "rrule", ofType: "js") ?? Bundle.main.path(forResource: "rrule", ofType: "js")
+      let libPath = Bundle(for: JavaScriptBridge.self)?.path(forResource: "rrule", ofType: "js") ?? Bundle.main.path(forResource: "rrule", ofType: "js")
         guard let rrulelibPath = libPath else {
             return nil
         }
