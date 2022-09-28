@@ -35,11 +35,7 @@ public class RRule: NSObject {
   @objc
   public static func ruleFromString(_ string: String) -> RecurrenceRule? {
     let string = string.trimmingCharacters(in: .whitespaces)
-    guard let range = string.range(of: "RRULE:"), range.lowerBound == string.startIndex else {
-      return nil
-    }
-    let ruleString = String(string.suffix(from: range.upperBound))
-    let rules = ruleString.components(separatedBy: ";").compactMap { (rule) -> String? in
+    let rules = string.components(separatedBy: ";").compactMap { (rule) -> String? in
       if rule.isEmpty {
         return nil
       }
@@ -48,6 +44,7 @@ public class RRule: NSObject {
     
     let recurrenceRule = RecurrenceRule(frequency: .daily)
     var ruleFrequency: RecurrenceFrequency?
+    var byDayValue = ""
     for rule in rules {
       let ruleComponents = rule.components(separatedBy: "=")
       guard ruleComponents.count == 2 else {
@@ -149,6 +146,7 @@ public class RRule: NSObject {
         // These variables will define the weekdays where the recurrence will be applied.
         // In the RFC documentation, it is specified as BYDAY, but was renamed to avoid the ambiguity of that argument.
         let byweekday = ruleValue.components(separatedBy: ",").compactMap({ (string) -> EKWeekday? in
+          byDayValue = string
           return EKWeekday.weekdayFromSymbol(string)
         })
         recurrenceRule.byweekday = byweekday.sorted(by: <)
@@ -181,21 +179,32 @@ public class RRule: NSObject {
       return nil
     }
     recurrenceRule.frequency = frequency
+    guard recurrenceRule.frequency == .monthly &&
+            recurrenceRule.bymonthday.isEmpty &&
+            recurrenceRule.bysetpos.isEmpty &&
+            !byDayValue.isEmpty
+    else { return recurrenceRule }
     
+    let offsetString = byDayValue.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+    if offsetString.isEmpty {
+      return recurrenceRule
+    }
+    var offset = Int(offsetString)!
+    if byDayValue.starts(with: "-") {
+      offset = -1 * offset
+    }
+    recurrenceRule.bysetpos = [offset]
+    recurrenceRule.byweekday = [EKWeekday.weekdayFromSymbol(String(byDayValue.suffix(2)))!]
     return recurrenceRule
   }
   
   public static func stringFromRule(_ rule: RecurrenceRule) -> String {
-    var rruleString = "RRULE:"
+    var rruleString = ""
     
     rruleString += "FREQ=\(rule.frequency.toString());"
     
     let interval = max(1, rule.interval)
     rruleString += "INTERVAL=\(interval);"
-    
-    rruleString += "WKST=\(rule.firstDayOfWeek.toSymbol());"
-    
-    rruleString += "DTSTART=\(dateFormatter.string(from: rule.startDate as Date));"
     
     if let endDate = rule.recurrenceEnd?.endDate {
       rruleString += "UNTIL=\(dateFormatter.string(from: endDate));"
