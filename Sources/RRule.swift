@@ -44,7 +44,6 @@ public class RRule: NSObject {
     
     let recurrenceRule = RecurrenceRule(frequency: .daily)
     var ruleFrequency: RecurrenceFrequency?
-    var byDayValue = ""
     for rule in rules {
       let ruleComponents = rule.components(separatedBy: "=")
       guard ruleComponents.count == 2 else {
@@ -182,22 +181,6 @@ public class RRule: NSObject {
       return nil
     }
     recurrenceRule.frequency = frequency
-    guard recurrenceRule.frequency == .monthly &&
-            recurrenceRule.bymonthday.isEmpty &&
-            recurrenceRule.bysetpos.isEmpty &&
-            !byDayValue.isEmpty
-    else { return recurrenceRule }
-    
-    let offsetString = byDayValue.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
-    if offsetString.isEmpty {
-      return recurrenceRule
-    }
-    var offset = Int(offsetString)!
-    if byDayValue.starts(with: "-") {
-      offset = -1 * offset
-    }
-    recurrenceRule.bysetpos = [offset]
-    recurrenceRule.byweekday = [EKWeekday.weekdayFromSymbol(String(byDayValue.suffix(2)))!]
     return recurrenceRule
   }
   
