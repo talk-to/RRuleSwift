@@ -147,6 +147,7 @@ public class RRule: NSObject {
         let byweekday = ruleValue.components(separatedBy: ",").compactMap({ (string) -> (Int?, EKWeekday)? in
           guard let parsedSymbol = EKWeekday.weekdayFromSymbol(String(string.suffix(2))) else { return nil }
           let specific = Int(string.prefix(string.count - 2))
+          if let position = specific { recurrenceRule.bysetpos = [position] }
           return (specific, parsedSymbol)
         })
         recurrenceRule.byweekday = byweekday.sorted(by: { (a, b) -> Bool in
@@ -249,8 +250,8 @@ public class RRule: NSObject {
     }
     
     let byweekdayElements = rule.byweekday.map { weekdayTuple -> String in
-      let modifier = weekdayTuple.0.flatMap { "\($0)" } ?? ""
-      return "\(modifier)\(weekdayTuple.1.toSymbol())"
+      let position = rule.bysetpos.map { String($0) }
+      return "\(position)\(weekdayTuple.1.toSymbol())"
     }
     if byweekdayElements.count > 0 {
       rruleString += "BYDAY=\(byweekdayElements.joined(separator: ","));"
