@@ -12,7 +12,7 @@ import JavaScriptCore
 @objc protocol JSDelegate: JSExport {
   func log(_ message: String)
 }
-@objc class MyJSDelegate: NSObject, JSDelegate {
+@objc class SwiftJSDelegate: NSObject, JSDelegate {
   func log(_ message: String) {
     RRuleSwift.logger.debug(message)
   }
@@ -25,10 +25,10 @@ public struct Iterator {
       return nil
     }
     let context = JSContext()
-    context?.setObject(MyJSDelegate(), forKeyedSubscript: "swiftDelegate" as NSCopying & NSObjectProtocol)
+    context?.setObject(SwiftJSDelegate(), forKeyedSubscript: "swiftJSDelegate" as NSCopying & NSObjectProtocol)
     context?.exceptionHandler = { context, exception in
       let description = String(describing: exception)
-      RRuleSwift.logger.debug(description)
+      RRuleSwift.logger.debug("RRule.Swift encountered error \(description)")
       print("[RRuleSwift] rrule.js error: \(description)")
     }
     let _ = context?.evaluateScript(rrulejs)
@@ -82,8 +82,10 @@ public extension RecurrenceRule {
     let untilDateJSON = RRule.ISO8601DateFormatter.string(from: untilDate)
     
     let ruleJSONString = toJSONString(endless: endlessRecurrenceCount)
+    RRuleSwift.logger.debug("RRule.Swift starting expansion for \(ruleJSONString)")
     let _ = Iterator.rruleContext?.evaluateScript("var rule = new RRule({ \(ruleJSONString) })")
     guard let betweenOccurrences = Iterator.rruleContext?.evaluateScript("rule.between(new Date('\(beginDateJSON)'), new Date('\(untilDateJSON)'), \(inclusive))").toArray() as? [Date] else {
+      RRuleSwift.logger.debug("RRule.Swift did not evaluateScript rule.between")
       return []
     }
     
@@ -104,6 +106,7 @@ public extension RecurrenceRule {
       }
     }
     
+    RRuleSwift.logger.debug("RRule.Swift ending expansion with \(occurrences.count) occurrences")
     return occurrences.sorted { $0.isBeforeOrSame(with: $1) }
   }
 }
