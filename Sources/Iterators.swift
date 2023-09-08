@@ -9,6 +9,15 @@
 import Foundation
 import JavaScriptCore
 
+@objc protocol JSDelegate: JSExport {
+  func log(_ message: String)
+}
+@objc class MyJSDelegate: NSObject, JSDelegate {
+  func log(_ message: String) {
+    RRuleSwift.logger.debug(message)
+  }
+}
+
 public struct Iterator {
   public static let endlessRecurrenceCount = 500
   internal static let rruleContext: JSContext? = {
@@ -16,8 +25,11 @@ public struct Iterator {
       return nil
     }
     let context = JSContext()
+    context?.setObject(MyJSDelegate(), forKeyedSubscript: "swiftDelegate" as NSCopying & NSObjectProtocol)
     context?.exceptionHandler = { context, exception in
-      print("[RRuleSwift] rrule.js error: \(String(describing: exception))")
+      let description = String(describing: exception)
+      RRuleSwift.logger.debug(description)
+      print("[RRuleSwift] rrule.js error: \(description)")
     }
     let _ = context?.evaluateScript(rrulejs)
     return context

@@ -87,6 +87,7 @@
      * @see: <http://www.mcfedries.com/JavaScript/DaysBetween.asp>
      */
     daysBetween: function (date1, date2) {
+      swiftDelegate.log("i was here")
       // The number of milliseconds in one day
       // Convert both dates to milliseconds
       var date1_ms = date1.getTime() - dateutil.tzOffset(date1)
