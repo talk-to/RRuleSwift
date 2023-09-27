@@ -84,6 +84,20 @@ public extension RecurrenceRule {
     let ruleJSONString = toJSONString(endless: endlessRecurrenceCount)
     RRuleSwift.logger.debug("RRule.Swift starting expansion for \(ruleJSONString)")
     let _ = Iterator.rruleContext?.evaluateScript("var rule = new RRule({ \(ruleJSONString) })")
+    RRuleSwift.logger.debug("RRule.Swift starting expansion between \(beginDateJSON) and \(untilDateJSON)")
+    
+    if [beginDateJSON, untilDateJSON, ruleJSONString].contains(where: { $0.contains("AMZ") || $0.contains("PMZ") }) {
+      let userInfo = [
+        "beginDateJSON": beginDateJSON,
+        "untilDateJSON": untilDateJSON,
+        "ruleJSONString": ruleJSONString,
+        "toRRuleString": toRRuleString()
+      ]
+      RRuleSwift.nonFatalErrorRecorder?.recordUnexpectedDateFormat(errorInfo: userInfo)
+      return [startDate]
+    }
+    
+    
     guard let betweenOccurrences = Iterator.rruleContext?.evaluateScript("rule.between(new Date('\(beginDateJSON)'), new Date('\(untilDateJSON)'), \(inclusive))").toArray() as? [Date] else {
       RRuleSwift.logger.debug("RRule.Swift did not evaluateScript rule.between")
       return []

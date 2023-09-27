@@ -8,12 +8,18 @@
 import Foundation
 import XCGLogger
 
+public protocol RRuleSwiftFirebaseNonFatalErrorRecorder {
+  func recordUnexpectedDateFormat(errorInfo: [String: Any])
+}
+
 public class RRuleSwift {
   
-  static var logger: XCGLogger = .default
+  private(set) static var logger: XCGLogger = .default
+  private(set) static var nonFatalErrorRecorder: RRuleSwiftFirebaseNonFatalErrorRecorder?
   
   @discardableResult
-  public init(logger: XCGLogger) {
+  public init(logger: XCGLogger, nonFatalErrorRecorder: RRuleSwiftFirebaseNonFatalErrorRecorder) {
     Self.logger = logger
+    Self.nonFatalErrorRecorder = nonFatalErrorRecorder
   }
 }
