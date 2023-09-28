@@ -9,6 +9,15 @@
 import Foundation
 import JavaScriptCore
 
+@objc protocol JSDelegate: JSExport {
+  func log(_ message: String)
+}
+@objc class SwiftJSDelegate: NSObject, JSDelegate {
+  func log(_ message: String) {
+    RRuleSwift.logger.debug(message)
+  }
+}
+
 public struct Iterator {
   public static let endlessRecurrenceCount = 500
   internal static let rruleContext: JSContext? = {
@@ -16,8 +25,11 @@ public struct Iterator {
       return nil
     }
     let context = JSContext()
+    context?.setObject(SwiftJSDelegate(), forKeyedSubscript: "swiftJSDelegate" as NSCopying & NSObjectProtocol)
     context?.exceptionHandler = { context, exception in
-      print("[RRuleSwift] rrule.js error: \(String(describing: exception))")
+      let description = String(describing: exception)
+      RRuleSwift.logger.debug("RRule.Swift encountered error \(description)")
+      print("[RRuleSwift] rrule.js error: \(description)")
     }
     let _ = context?.evaluateScript(rrulejs)
     return context
@@ -70,8 +82,24 @@ public extension RecurrenceRule {
     let untilDateJSON = RRule.ISO8601DateFormatter.string(from: untilDate)
     
     let ruleJSONString = toJSONString(endless: endlessRecurrenceCount)
+    RRuleSwift.logger.debug("RRule.Swift starting expansion for \(ruleJSONString)")
     let _ = Iterator.rruleContext?.evaluateScript("var rule = new RRule({ \(ruleJSONString) })")
+    RRuleSwift.logger.debug("RRule.Swift starting expansion between \(beginDateJSON) and \(untilDateJSON)")
+    
+    if [beginDateJSON, untilDateJSON, ruleJSONString].contains(where: { $0.contains("AMZ") || $0.contains("PMZ") }) {
+      let userInfo = [
+        "beginDateJSON": beginDateJSON,
+        "untilDateJSON": untilDateJSON,
+        "ruleJSONString": ruleJSONString,
+        "toRRuleString": toRRuleString()
+      ]
+      RRuleSwift.nonFatalErrorRecorder?.recordUnexpectedDateFormat(errorInfo: userInfo)
+      return [startDate]
+    }
+    
+    
     guard let betweenOccurrences = Iterator.rruleContext?.evaluateScript("rule.between(new Date('\(beginDateJSON)'), new Date('\(untilDateJSON)'), \(inclusive))").toArray() as? [Date] else {
+      RRuleSwift.logger.debug("RRule.Swift did not evaluateScript rule.between")
       return []
     }
     
@@ -92,6 +120,7 @@ public extension RecurrenceRule {
       }
     }
     
+    RRuleSwift.logger.debug("RRule.Swift ending expansion with \(occurrences.count) occurrences")
     return occurrences.sorted { $0.isBeforeOrSame(with: $1) }
   }
 }

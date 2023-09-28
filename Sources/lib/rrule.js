@@ -781,6 +781,7 @@
      * @return Array
      */
     between: function (after, before, inc, iterator) {
+      swiftJSDelegate.log(`RRule.JS started expansion`)
       var args = {
         before: before,
         after: after,
@@ -792,9 +793,14 @@
       }
       var result = this._cacheGet('between', args)
       if (result === false) {
+        swiftJSDelegate.log(`RRule.JS did not find cache`)
         result = this._iter(new IterResult('between', args))
+        swiftJSDelegate.log(`RRule.JS adding to cache`)
         this._cacheAdd('between', result, args)
+      } else {
+        swiftJSDelegate.log(`RRule.JS found cache`)
       }
+      swiftJSDelegate.log(`RRule.JS ended expansion`)
       return result
     },
 
@@ -1007,6 +1013,7 @@
       var count = this.options.count
       var i, j, k, dm, div, mod, tmp, pos, dayset, start, end, fixday, filtered
 
+      swiftJSDelegate.log(`RRule.JS expanding ${RRule.FREQUENCIES[freq]}`)
       while (true) {
         // Get dayset with the right frequency
         tmp = getdayset.call(ii, year, month, day)
@@ -1680,6 +1687,7 @@
      * @return {Boolean} whether we are interested in more values.
      */
     add: function (date) {
+      swiftJSDelegate.log(`RRule.JS adding ${date}`)
       this._result.push(date)
       return true
     },

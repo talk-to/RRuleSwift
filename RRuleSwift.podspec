@@ -25,5 +25,7 @@ Pod::Spec.new do |s|
   s.source_files = 'Sources/*.swift'
   s.resources = 'Sources/lib/*.js'
   s.watchos.exclude_files = 'Sources/Iterators.swift', 'JavaScriptBridge.swift'
+  
+  s.dependency "XCGLogger"
 
 end
