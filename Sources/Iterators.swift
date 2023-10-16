@@ -78,8 +78,8 @@ public extension RecurrenceRule {
     
     let beginDate = date.isBeforeOrSame(with: otherDate) ? date : otherDate
     let untilDate = otherDate.isAfterOrSame(with: date) ? otherDate : date
-    let beginDateJSON = RRule.ISO8601DateFormatter.string(from: beginDate)
-    let untilDateJSON = RRule.ISO8601DateFormatter.string(from: untilDate)
+    let beginDateJSON = beginDate.toJSDateFormat
+    let untilDateJSON = untilDate.toJSDateFormat
     
     let ruleJSONString = toJSONString(endless: endlessRecurrenceCount)
     RRuleSwift.logger.debug("RRule.Swift starting expansion for \(ruleJSONString)")
@@ -122,5 +122,23 @@ public extension RecurrenceRule {
     
     RRuleSwift.logger.debug("RRule.Swift ending expansion with \(occurrences.count) occurrences")
     return occurrences.sorted { $0.isBeforeOrSame(with: $1) }
+  }
+}
+
+extension Date {
+  private static let calendar: Calendar = {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+    return calendar
+  }()
+  private var year: String { String(format: "%02d", Self.calendar.component(.year, from: self)) }
+  private var month: String { String(format: "%02d", Self.calendar.component(.month, from: self)) }
+  private var day: String { String(format: "%02d", Self.calendar.component(.day, from: self)) }
+  private var hour: String { String(format: "%02d", Self.calendar.component(.hour, from: self)) }
+  private var minute: String { String(format: "%02d", Self.calendar.component(.minute, from: self)) }
+  private var second: String { String(format: "%02d", Self.calendar.component(.second, from: self)) }
+  
+  var toJSDateFormat: String {
+    "\(year)-\(month)-\(day)T\(hour):\(minute):\(second)Z"
   }
 }

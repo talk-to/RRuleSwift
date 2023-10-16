@@ -24,12 +24,12 @@ public class RRule: NSObject {
     return dateFormatter
   }()
   
-  internal static let ISO8601DateFormatter: DateFormatter = {
-    let dateFormatter = DateFormatter()
-    dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
-    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-    return dateFormatter
-  }()
+//  internal static let ISO8601DateFormatter: DateFormatter = {
+//    let dateFormatter = DateFormatter()
+//    dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+//    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+//    return dateFormatter
+//  }()
   
   
   @objc
