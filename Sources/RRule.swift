@@ -11,21 +11,23 @@ import EventKit
 
 @objc
 public class RRule: NSObject {
-  public static let dateFormatter: DateFormatter = {
+  static let dateFormatter: DateFormatter = {
     let dateFormatter = DateFormatter()
+    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
     dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
     dateFormatter.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
     return dateFormatter
   }()
-  public static let ymdDateFormatter: DateFormatter = {
+  static let ymdDateFormatter: DateFormatter = {
     let dateFormatter = DateFormatter()
+    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
     dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
     dateFormatter.dateFormat = "yyyyMMdd"
     return dateFormatter
   }()
-  
-  internal static let ISO8601DateFormatter: DateFormatter = {
+  static let ISO8601DateFormatter: DateFormatter = {
     let dateFormatter = DateFormatter()
+    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
     dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
     dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
     return dateFormatter
