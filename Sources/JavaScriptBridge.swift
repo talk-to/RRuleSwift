@@ -57,10 +57,10 @@ internal extension RecurrenceRule {
         var jsonString = "freq: \(frequency.toJSONFrequency()),"
         jsonString += "interval: \(max(1, interval)),"
         jsonString += "wkst: \(firstDayOfWeek.toJSONSymbol()),"
-      jsonString += "dtstart: new Date('\(startDate.toJSDateFormat)'),"
+        jsonString += "dtstart: new Date('\(RRule.ISO8601DateFormatter.string(from: startDate))'),"
 
         if let endDate = recurrenceEnd?.endDate {
-          jsonString += "until: new Date('\(endDate.toJSDateFormat)'),"
+            jsonString += "until: new Date('\(RRule.ISO8601DateFormatter.string(from: endDate))'),"
         } else if let count = recurrenceEnd?.occurrenceCount {
             jsonString += "count: \(count),"
         } else {
