@@ -118,7 +118,7 @@ internal extension RecurrenceRule {
         }
 
         let byweekdayJSSymbols = byweekday.map({ (weekday) -> String in
-            return weekday.toJSONSymbol()
+          return weekday.1.toJSONSymbol()
         })
         if byweekdayJSSymbols.count > 0 {
             jsonString += "byweekday: [\(byweekdayJSSymbols.joined(separator: ","))],"
