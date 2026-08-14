@@ -53,7 +53,7 @@
      * want to confuse the JS engine with milliseconds > Number.MAX_NUMBER,
      * therefore we use 1-Jan-1970 instead
      */
-    ORDINAL_BASE: new Date(1970, 0, 1),
+    ORDINAL_BASE: new Date(Date.UTC(1970, 0, 1)),
 
     /**
      * Python: MO-SU: 0 - 6
@@ -65,10 +65,10 @@
      * py_date.timetuple()[7]
      */
     getYearDay: function (date) {
-      var dateNoTime = new Date(
-        date.getFullYear(), date.getMonth(), date.getDate())
+      var dateNoTime = new Date(Date.UTC(
+        date.getFullYear(), date.getMonth(), date.getDate()))
       return Math.ceil(
-        (dateNoTime - new Date(date.getFullYear(), 0, 1)) / dateutil.ONE_DAY) + 1
+        (dateNoTime - new Date(Date.UTC(date.getFullYear(), 0, 1))) / dateutil.ONE_DAY) + 1
     },
 
     isLeapYear: function (year) {
@@ -119,7 +119,7 @@
      * @see: <http://docs.python.org/library/calendar.html#calendar.monthrange>
      */
     monthRange: function (year, month) {
-      var date = new Date(year, month, 1)
+      var date = new Date(Date.UTC(year, month, 1))
       return [dateutil.getWeekday(date), dateutil.getMonthDays(date)]
     },
 
@@ -141,10 +141,10 @@
      */
     combine: function (date, time) {
       time = time || date
-      return new Date(
+      return new Date(Date.UTC(
         date.getFullYear(), date.getMonth(), date.getDate(),
         time.getHours(), time.getMinutes(), time.getSeconds(),
-        time.getMilliseconds())
+        time.getMilliseconds()))
     },
 
     clone: function (date) {
@@ -1401,12 +1401,12 @@
     if (year !== this.lastyear) {
       this.yearlen = dateutil.isLeapYear(year) ? 366 : 365
       this.nextyearlen = dateutil.isLeapYear(year + 1) ? 366 : 365
-      var firstyday = new Date(year, 0, 1)
+      var firstyday = new Date(Date.UTC(year, 0, 1))
 
       this.yearordinal = dateutil.toOrdinal(firstyday)
       this.yearweekday = dateutil.getWeekday(firstyday)
 
-      var wday = dateutil.getWeekday(new Date(year, 0, 1))
+      var wday = dateutil.getWeekday(new Date(Date.UTC(year, 0, 1)))
 
       if (this.yearlen === 365) {
         this.mmask = [].concat(M365MASK)
@@ -1487,7 +1487,7 @@
           // this year.
           var lnumweeks
           if (!contains(rr.options.byweekno, -1)) {
-            var lyearweekday = dateutil.getWeekday(new Date(year - 1, 0, 1))
+            var lyearweekday = dateutil.getWeekday(new Date(Date.UTC(year - 1, 0, 1)))
             var lno1wkst = pymod(7 - lyearweekday + rr.options.wkst, 7)
             var lyearlen = dateutil.isLeapYear(year - 1) ? 366 : 365
             if (lno1wkst >= 4) {
@@ -1570,7 +1570,7 @@
   Iterinfo.prototype.wdayset = function (year, month, day) {
     // We need to handle cross-year weeks here.
     var set = repeat(null, this.yearlen + 7)
-    var i = dateutil.toOrdinal(new Date(year, month - 1, day)) - this.yearordinal
+    var i = dateutil.toOrdinal(new Date(Date.UTC(year, month - 1, day))) - this.yearordinal
     var start = i
     for (var j = 0; j < 7; j++) {
       set[i] = i
@@ -1582,7 +1582,7 @@
 
   Iterinfo.prototype.ddayset = function (year, month, day) {
     var set = repeat(null, this.yearlen)
-    var i = dateutil.toOrdinal(new Date(year, month - 1, day)) - this.yearordinal
+    var i = dateutil.toOrdinal(new Date(Date.UTC(year, month - 1, day))) - this.yearordinal
     set[i] = i
     return [set, i, i + 1]
   }
@@ -2276,3 +2276,33 @@
     return getnlp._nlp
   }
 }))
+
+// =============================================================================
+// Force this rrule.js instance to always compute in UTC, regardless of the
+// host device's system timezone. dateutil's stepping/comparison helpers above
+// (getYearDay, monthRange, combine, Iterinfo.rebuild/wdayset/ddayset, tzOffset)
+// were edited to construct new Dates via Date.UTC(...) instead of the local
+// multi-arg Date constructor; this patch makes the corresponding *read* side
+// (the getters those helpers call) consistent by aliasing every local getter
+// to its UTC equivalent, and getTimezoneOffset to a fixed 0. Both sides must
+// agree for the arithmetic in this file to be timezone-independent — aliasing
+// getters alone does not affect the native multi-arg Date constructor's local
+// interpretation, so this patch and the Date.UTC(...) edits above only work
+// together.
+;(function () {
+  var proto = Date.prototype
+  var utcAliases = {
+    getFullYear: 'getUTCFullYear',
+    getMonth: 'getUTCMonth',
+    getDate: 'getUTCDate',
+    getDay: 'getUTCDay',
+    getHours: 'getUTCHours',
+    getMinutes: 'getUTCMinutes',
+    getSeconds: 'getUTCSeconds',
+    getMilliseconds: 'getUTCMilliseconds'
+  }
+  Object.keys(utcAliases).forEach(function (localName) {
+    proto[localName] = proto[utcAliases[localName]]
+  })
+  proto.getTimezoneOffset = function () { return 0 }
+})()
